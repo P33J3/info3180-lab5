@@ -8,6 +8,7 @@ This file creates your application.
 from app import app
 from flask import render_template, request, jsonify, send_file
 import os
+from app.forms import MovieForm
 
 
 ###
@@ -17,6 +18,32 @@ import os
 @app.route('/')
 def index():
     return jsonify(message="This is the beginning of our API")
+
+@app.route('/api/v1/movies', methods=['POST'])
+def movies():
+    form = Movies()
+
+    if request.method == 'POST':
+        if form.validate_on_submit():
+            title = form.title.data
+            description = form.description.data
+            poster = form.poster.data
+
+            filename = secure_filename(poster.filename)
+            poster.save(os.path.join(app.static_folder, app.config['UPLOAD_FOLDER'], filename))
+
+            created_movie = Movie(title, description, poster)
+            db.session.add(created_movie)
+            db.session.commit()
+
+            return jsonify({
+                        "message": "Movie Successfully added",
+                        "title": title,
+                        "poster": poster,
+                        "description": description
+                    })
+        return jsonify(errors=form_errors(form))
+    return render_template('MovieForm.vue', form=form)
 
 
 ###
