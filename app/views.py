@@ -6,7 +6,7 @@ This file creates your application.
 """
 
 from app import app, db
-from flask import render_template, request, jsonify, send_file, session
+from flask import render_template, request, jsonify, send_file, session, send_from_directory
 import os
 from app.forms import MovieForm
 from app.models import Movie
@@ -51,6 +51,30 @@ def movies():
                     })
         return jsonify(errors=form_errors(form)), 400
 
+@app.route('/api/v1/movies', methods=['GET'])
+def get_movies():
+    movies = Movie.query.all()
+    movie_list = []
+    for movie in movies:
+        movie_data = {
+        "id" : movie.id,
+        "title" : movie.title,
+        "description" : movie.description,
+        "poster" : f"/api/v1/posters/{movie.poster}",
+#         "poster" : movie.poster,
+        }
+        movie_list.append(movie_data)
+    return jsonify({"movies": movie_list})
+
+@app.route('/api/v1/posters/<filename>')
+def get_poster(filename):
+    file_path = get_photo_by_filename(filename)
+    if file_path:
+#         return jsonify({"message":file_path})
+        return send_file(file_path)
+    else:
+        return jsonify({"message":"File not found"}), 404
+
 
 ###
 # The functions below should be applicable to all Flask apps.
@@ -70,6 +94,15 @@ def form_errors(form):
             error_messages.append(message)
 
     return error_messages
+
+def get_photo_by_filename(filename):
+        uploads_folder = os.path.join(app.static_folder, app.config['UPLOAD_FOLDER'])
+        file_path = os.path.join(uploads_folder, filename)
+
+        if os.path.exists(file_path) and os.path.isfile(file_path):
+            return file_path
+        else:
+            return None
 
 @app.route('/<file_name>.txt')
 def send_text_file(file_name):
