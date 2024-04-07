@@ -31,10 +31,10 @@ const saveMovie = () => {
         // console.log('data', data);
         successMessage.value = data.message;
         displayMessage.value = true;
-        errorMessages.value = data.errors;
+        errorMessages.value = data.errors || [];
       })
       .catch(function (error) {
-        errorMessages.value = error.message;
+        errorMessages.value = [error.message];
       });
 }
 
@@ -42,7 +42,7 @@ function getCsrfToken() {
   fetch('/api/v1/csrf-token')
       .then((response) => response.json())
       .then((data) => {
-        console.log(data);
+        // console.log(data);
         csrf_token.value = data.csrf_token;
       })
 

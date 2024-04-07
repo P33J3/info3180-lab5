@@ -53,7 +53,7 @@ def movies():
 
 @app.route('/api/v1/movies', methods=['GET'])
 def get_movies():
-    movies = Movie.query.all()
+    movies = db.session.execute(db.select(Movie)).scalars()
     movie_list = []
     for movie in movies:
         movie_data = {
